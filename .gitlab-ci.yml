@@ -11,6 +11,7 @@ build:
   cache:
     paths:
       - node_modules/
+      - /root/.cache/Cypress
   script:
     - npm install --quiet
     - npm run build --prod
@@ -20,8 +21,12 @@ build:
 
 linting:
   stage: linting
+  cache:
+    paths:
+      - node_modules/
+      - /root/.cache/Cypress
   script:
-    - npm run lint
+    - npx ng lint
   dependencies:
     - build
   except:
@@ -30,27 +35,37 @@ linting:
 
 test:unit:
   stage: test
+  cache:
+    paths:
+      - node_modules/
+      - /root/.cache/Cypress
   script:
-    - npm run test:coverage
+    - npm run test
   dependencies:
     - build
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /skip-ci/
 
-# test:e2e:
-#   stage: test
-#   image: cypress/browsers:chrome69
-#   dependencies:
-#     - install
-#     - build
-#   script:
-#     - npm run e2e
-#   artifacts:
-#     paths:
-#       - cypress/screenshots
-#       - cypress/videos
-#     expire_in: 1 day
+test:e2e:
+  stage: test
+  cache:
+    paths:
+      - node_modules/
+      - /root/.cache/Cypress
+  dependencies:
+    - build
+    - linting
+  script:
+    - npm run e2e
+  artifacts:
+    paths:
+      - cypress/screenshots
+      - cypress/videos
+    expire_in: 1 day
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /skip-ci/
 
 deploy_prod:
   stage: deploy
